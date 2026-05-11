@@ -1,2 +1,2 @@
 # Sinyal
-Sinyal Kaybı official website.
+Sinyal Kaybı official page.
