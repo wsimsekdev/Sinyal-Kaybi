@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="icon" type="image/png" href="favicon.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Başlık da JS tarafından dile göre değiştirilecek -->
+    <title id="page-title">Signal Loss - Sinyal Kaybi</title>
+    <style>
+        :root {
+            --neon-green: #39ff14;
+            --dark-bg: #0a0a0c;
+            --text-color: #e0e0e0;
+        }
+
+        body {
+            margin: 0;
+            padding: 80px 20px 20px 20px; /* Üstten dil seçici için, alttan footer için boşluk */
+            box-sizing: border-box;
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            font-family: 'Courier New', Courier, monospace;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Dil Seçici (Language Switcher) */
+        .lang-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .lang-btn {
+            background-color: transparent;
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 8px 15px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 5px rgba(57, 255, 20, 0.1) inset;
+        }
+
+        .lang-btn:hover {
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.4) inset;
+        }
+
+        .lang-btn.active {
+            background-color: var(--neon-green);
+            color: var(--dark-bg);
+            box-shadow: 0 0 15px rgba(57, 255, 20, 0.6);
+        }
+
+        /* Radar Arka Plan Animasyonu */
+        .radar-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            border-radius: 50%;
+            border: 1px solid rgba(57, 255, 20, 0.1);
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .radar-container::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            background: conic-gradient(from 0deg, transparent 70%, rgba(57, 255, 20, 0.4) 100%);
+            transform-origin: 0 0;
+            animation: scan 4s linear infinite;
+        }
+
+        .radar-grid {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                linear-gradient(rgba(57, 255, 20, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(57, 255, 20, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            border-radius: 50%;
+        }
+
+        @keyframes scan {
+            100% { transform: rotate(360deg); }
+        }
+
+        /* İçerik Kutusu */
+        .content {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            background: rgba(10, 10, 12, 0.8);
+            border: 1px solid var(--neon-green);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.1);
+            backdrop-filter: blur(5px);
+            z-index: 1;
+            margin-top: auto; /* Dikeyde ortalamak için */
+            margin-bottom: 40px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: var(--neon-green);
+            font-size: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+            transition: opacity 0.3s;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            font-weight: normal;
+            color: #888;
+            margin-bottom: 30px;
+        }
+
+        p {
+            line-height: 1.6;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        /* İndirme Butonu */
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 15px 30px;
+            background-color: transparent;
+            color: var(--neon-green);
+            border: 2px solid var(--neon-green);
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.2) inset;
+        }
+
+        .download-btn svg {
+            width: 28px;
+            height: 28px;
+            fill: currentColor;
+        }
+
+        .download-btn:hover {
+            background-color: var(--neon-green);
+            color: var(--dark-bg);
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.6);
+        }
+
+        /* Sonar Tıklama Efekti */
+        .sonar-ripple {
+            position: fixed;
+            border: 3px solid var(--neon-green);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none; /* Dalganın tıklamaları engellememesi için */
+            animation: ripple-expand 0.8s ease-out forwards;
+            z-index: 9999;
+        }
+
+        @keyframes ripple-expand {
+            0% {
+                width: 0px;
+                height: 0px;
+                opacity: 1;
+            }
+            100% {
+                width: 150px;
+                height: 150px;
+                opacity: 0;
+            }
+        }
+
+        /* Alt Kısım Konteyneri */
+        .footer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: auto; /* Her zaman en alta itmek için */
+            z-index: 10;
+            width: 100%;
+        }
+
+        /* Gizlilik Politikası Linki */
+        .privacy-link {
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease, text-shadow 0.3s ease;
+        }
+
+        .privacy-link:hover {
+            color: var(--neon-green);
+            text-shadow: 0 0 5px rgba(57, 255, 20, 0.5);
+            text-decoration: underline;
+        }
+
+        /* Kayan Sinyal Metni */
+        .status-text {
+            color: var(--neon-green);
+            font-size: 0.9rem;
+            opacity: 0.7;
+            animation: blink 2s infinite;
+            text-align: center;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 0.2; }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .content { padding: 20px; }
+            h1 { font-size: 2rem; }
+            .radar-container { width: 400px; height: 400px; }
+            .lang-switcher { top: 15px; right: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Dil Seçici -->
+    <div class="lang-switcher">
+        <button class="lang-btn active" id="btn-en" onclick="setLanguage('en')">EN</button>
+        <button class="lang-btn" id="btn-tr" onclick="setLanguage('tr')">TR</button>
+    </div>
+
+    <!-- Arka Plan Animasyonu -->
+    <div class="radar-container">
+        <div class="radar-grid"></div>
+    </div>
+
+    <!-- Ana İçerik -->
+    <div class="content">
+        <h1 id="text-title">Signal Loss</h1>
+        <h2 id="text-subtitle">Deep Space Survival Protocol</h2>
+        
+        <p id="text-desc">
+            No vision. No light. Only echoes.<br><br>
+            As you navigate through abandoned sectors, your only weapon is your sonar. Overcome obstacles using sound waves, collect dark matter, and reach the exit portal without getting caught by ruthless predators. How deep can you go before your battery runs out?
+        </p>
+
+        <a href="https://play.google.com/store/apps/details?id=com.wsimsek.sinyalkaybi" class="download-btn">
+            <svg viewBox="0 0 24 24">
+                <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.5,12.92 20.16,13.19L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z" />
+            </svg>
+            <span id="text-download">Download on Google Play</span>
+        </a>
+    </div>
+
+    <!-- Alt Kısım (Footer) -->
+    <div class="footer-container">
+        <!-- Gizlilik Politikası Butonu/Linki -->
+        <a href="https://sites.google.com/view/sinyalkaybi-privacypolicy/ana-sayfa" class="privacy-link" id="text-privacy">Privacy Policy</a>
+
+        <!-- Alt Kayan Yazı -->
+        <div class="status-text" id="text-status">>_ SYSTEM ONLINE. AWAITING SIGNAL...</div>
+    </div>
+
+    <!-- Çoklu Dil (Localization) Scripti -->
+    <script>
+        // Çeviri Sözlüğü
+        const translations = {
+            en: {
+                pageTitle: "Signal Loss - Sinyal Kaybi",
+                title: "Sinyal Kaybı (Signal Loss)",
+                subtitle: "Deep Space Survival Protocol",
+                desc: "No vision. No light. Only echoes.<br><br>As you navigate through abandoned sectors, your only weapon is your sonar. Overcome obstacles using sound waves, collect dark matter, and reach the exit portal without getting caught by ruthless predators. How deep can you go before your battery runs out?",
+                download: "Download on Google Play",
+                privacy: "Privacy Policy",
+                status: ">_ SYSTEM ONLINE. AWAITING SIGNAL..."
+            },
+            tr: {
+                pageTitle: "Sinyal Kaybı",
+                title: "Sinyal Kaybı",
+                subtitle: "Derin Uzayda Hayatta Kalma Protokolü",
+                desc: "Görüş yok. Işık yok. Sadece yankılar var.<br><br>Terk edilmiş sektörlerde ilerlerken tek silahınız sonarınız. Ses dalgalarını kullanarak engelleri aşın, karanlık madde toplayın ve acımasız avcılara yakalanmadan çıkış portalına ulaşın. Bataryanız tükenmeden önce ne kadar derine inebilirsiniz?",
+                download: "Google Play'de İndir",
+                privacy: "Gizlilik Politikası",
+                status: ">_ SİSTEM ÇEVRİMİÇİ. SİNYAL BEKLENİYOR..."
+            }
+        };
+
+        // Dili Değiştiren Fonksiyon
+        function setLanguage(lang) {
+            // HTML dil etiketini güncelle
+            document.documentElement.lang = lang;
+            
+            // Sayfa sekme başlığını güncelle
+            document.title = translations[lang].pageTitle;
+            
+            // Metinleri güncelle
+            document.getElementById('text-title').innerHTML = translations[lang].title;
+            document.getElementById('text-subtitle').innerHTML = translations[lang].subtitle;
+            document.getElementById('text-desc').innerHTML = translations[lang].desc;
+            document.getElementById('text-download').innerHTML = translations[lang].download;
+            document.getElementById('text-privacy').innerHTML = translations[lang].privacy;
+            document.getElementById('text-status').innerHTML = translations[lang].status;
+
+            // Butonların aktiflik(renk) durumunu ayarla
+            document.getElementById('btn-en').classList.remove('active');
+            document.getElementById('btn-tr').classList.remove('active');
+            document.getElementById('btn-' + lang).classList.add('active');
+        }
+
+        // Sayfa yüklendiğinde varsayılan olarak İngilizce başlat
+        window.onload = function() {
+            setLanguage('en');
+        };
+
+        // --- Sonar Tıklama (Ripple) Efekti Scripti ---
+        function createRipple(x, y) {
+            const ripple = document.createElement('div');
+            ripple.classList.add('sonar-ripple');
+            // Tıklanılan kordinatları ayarla
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            document.body.appendChild(ripple);
+
+            // Animasyon (0.8s) bittikten sonra elementi DOM'dan silerek performansı koru
+            setTimeout(() => {
+                ripple.remove();
+            }, 800);
+        }
+
+        // Fare ile tıklama dinleyicisi
+        document.addEventListener('click', function(e) {
+            createRipple(e.clientX, e.clientY);
+        });
+
+        // Telefonlar için dokunma dinleyicisi
+        document.addEventListener('touchstart', function(e) {
+            if(e.touches.length > 0) {
+                // Sadece ilk dokunuş noktasını baz al
+                createRipple(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, {passive: true});
+    </script>
+</body>
+</html>
